@@ -2,6 +2,7 @@ import pygame
 import asyncio
 import math
 import collections
+from random import choice
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 100
@@ -146,13 +147,45 @@ old_val = 2
 async def main():
     while True:
         sc.fill(pygame.Color('thistle1'))
+        turn_color = game1.get_turn()
+        if turn_color == "white":
+            new_mouse_pos = pixel_to_flat_hex(hex_to_pixel(choice(hex_list)))
+            for thing in hex_list:
+                if thing.print_coord()[0] == new_mouse_pos[0]:
+                    if thing.print_coord()[1] == new_mouse_pos[1]:
+                        if game1.first_move != True and thing.get_val() != old_val:
+                            continue
+                        if game1.get_new_game() == True and thing.get_val() != 2:
+                            continue
+                        if thing.get_val() == 7 or thing.get_val() == 8:
+                            continue
+                        if turn_color == "black":
+                            old_val = thing.get_val()
+                            thing.set_val(7)
+
+                        elif turn_color == "white":
+                            old_val = thing.get_val()
+                            pygame.time.delay(900)
+                            thing.set_val(8)
+
+                        if game1.first_move == True:
+                            game1.set_moves(old_val)
+                            game1.set_first_move(False)
+                        if game1.get_new_game() == True:
+                            game1.dec_moves()
+                            game1.set_new_game(False)
+                        game1.dec_moves()
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 turn_color = game1.get_turn()
-                new_mouse_pos = get_mouse()
+                if turn_color == "white":
+                    continue
+                else:
+                    new_mouse_pos = get_mouse()
                 for thing in hex_list:
                     if thing.print_coord()[0] == new_mouse_pos[0]:
                         if thing.print_coord()[1] == new_mouse_pos[1]:
