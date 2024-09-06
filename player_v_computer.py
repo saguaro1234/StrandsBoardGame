@@ -1,11 +1,11 @@
 import pygame
-from random import choice
+import asyncio
 import math
 import collections
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 100
-# cols,rows = WIDTH // TILE, HEIGHT // TILE
+
 
 pygame.init()
 sc = pygame.display.set_mode(RES)
@@ -44,7 +44,6 @@ class Hexagon:
                     neighbors.append(thing)
         return neighbors
 
-
 class Strand:
     def __init__(self, tiles):
         self._tiles = tiles
@@ -69,7 +68,6 @@ class Strand:
 
     def set_first_move(self, status):
         self.first_move = status
-
     def dec_moves(self):
         self._moves -= 1
         if self._moves == 0 and self._turn == "black":
@@ -78,10 +76,6 @@ class Strand:
         elif self._moves == 0 and self._turn == "white":
             self._turn = "black"
             self.first_move = True
-
-    # def win_check(self, item, temp_black = None, temp_white = None, black_num = 0, white_num = 0):
-
-
 hex_list = []
 for q in range(-5, 6):
     for r in range(-5, 6):
@@ -99,7 +93,6 @@ for q in range(-5, 6):
                     val = 1
                 cell = Hexagon(q, r, s, val)
                 hex_list.append(cell)
-
 Point = collections.namedtuple("Point", ["x", "y"])
 
 
@@ -117,8 +110,6 @@ def pixel_to_flat_hex(point):
 
 hi = HEIGHT / 2
 wi = WIDTH / 2
-
-
 def draw_hex(h, size):
     color_map = {
         3: "sandybrown",
@@ -139,7 +130,6 @@ def draw_hex(h, size):
               (coord.x + size * math.sin(5 * 3.14 / 6) + hi, coord.y + size * math.cos(5 * 3.14 / 6) + wi)]
     pygame.draw.polygon(sc, pygame.Color(color), points)
 
-
 def get_mouse():
     mouse_pos = pygame.mouse.get_pos()
     mouse_list = [mouse_pos[0], mouse_pos[1]]
@@ -152,42 +142,45 @@ def get_mouse():
 game1 = Strand(hex_list)
 turn_color = game1.get_turn()
 old_val = 2
-while True:
-    sc.fill(pygame.Color('thistle1'))
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exit()
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            turn_color = game1.get_turn()
-            new_mouse_pos = get_mouse()
-            for thing in hex_list:
-                if thing.print_coord()[0] == new_mouse_pos[0]:
-                    if thing.print_coord()[1] == new_mouse_pos[1]:
-                        if game1.first_move != True and thing.get_val() != old_val:
-                            continue
-                        if game1.get_new_game() == True and thing.get_val() != 2:
-                            continue
-                        if thing.get_val() == 7 or thing.get_val() == 8:
-                            continue
-                        if turn_color == "black":
-                            old_val = thing.get_val()
-                            thing.set_val(7)
+async def main():
+    while True:
+        sc.fill(pygame.Color('thistle1'))
 
-                        elif turn_color == "white":
-                            old_val = thing.get_val()
-                            thing.set_val(8)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                turn_color = game1.get_turn()
+                new_mouse_pos = get_mouse()
+                for thing in hex_list:
+                    if thing.print_coord()[0] == new_mouse_pos[0]:
+                        if thing.print_coord()[1] == new_mouse_pos[1]:
+                            if game1.first_move != True and thing.get_val() != old_val:
+                                continue
+                            if game1.get_new_game() == True and thing.get_val() != 2:
+                                continue
+                            if thing.get_val() == 7 or thing.get_val() == 8:
+                                continue
+                            if turn_color == "black":
+                                old_val = thing.get_val()
+                                thing.set_val(7)
 
-                        if game1.first_move == True:
-                            game1.set_moves(old_val)
-                            game1.set_first_move(False)
-                        if game1.get_new_game() == True:
+                            elif turn_color == "white":
+                                old_val = thing.get_val()
+                                thing.set_val(8)
+
+                            if game1.first_move == True:
+                                game1.set_moves(old_val)
+                                game1.set_first_move(False)
+                            if game1.get_new_game() == True:
+                                game1.dec_moves()
+                                game1.set_new_game(False)
                             game1.dec_moves()
-                            game1.set_new_game(False)
-                        game1.dec_moves()
+        for thing in hex_list:
+            draw_hex(thing, 35)
 
-    for thing in hex_list:
-        draw_hex(thing, 35)
-
-    pygame.display.flip()
-    clock.tick(1000)
+        pygame.display.flip()
+        clock.tick(1000)
+        await asyncio.sleep(0)
+asyncio.run(main())
