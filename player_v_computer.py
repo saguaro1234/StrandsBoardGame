@@ -52,8 +52,8 @@ class Strand:
         self._turn = "black"
         self.first_move = True
         self._new_game = True
-        self._black_group = {"num": 0, "black_list": []}
-        self._white_group = {"num": 0, "white_list": []}
+        self._black_group = []
+        self._white_group = []
 
     def get_new_game(self):
         return self._new_game

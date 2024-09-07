@@ -39,9 +39,9 @@ class Hexagon:
     def viable_neighbors(self):
         neighbors = []
         for neighbor in self.neighbors:
-            for thing in hex_list:
-                if Hexagon(neighbor[0], neighbor[1], neighbor[2]).grid == thing.grid:
-                    neighbors.append(thing)
+            if neighbor in hex_list_grid:
+                place = hex_list_grid.index(neighbor)
+                neighbors.append(hex_list[place])
         return neighbors
 
 
@@ -52,8 +52,8 @@ class Strand:
         self._turn = "black"
         self.first_move = True
         self._new_game = True
-        self._black_group = {"num": 0, "black_list": []}
-        self._white_group = {"num": 0, "white_list": []}
+        self._black_group = []
+        self._white_group = []
 
     def get_new_game(self):
         return self._new_game
@@ -70,6 +70,11 @@ class Strand:
     def set_first_move(self, status):
         self.first_move = status
 
+    def add_black_piece(self, tile):
+        self._black_group.append(tile)
+
+    def add_white_piece(self, tile):
+        self._white_group.append(tile)
     def dec_moves(self):
         self._moves -= 1
         if self._moves == 0 and self._turn == "black":
@@ -79,7 +84,11 @@ class Strand:
             self._turn = "black"
             self.first_move = True
 
-    # def win_check(self, item, temp_black = None, temp_white = None, black_num = 0, white_num = 0):
+    def win_check(self):
+        for tile in self._black_group:
+            if tile.viable_neighbors():
+                print(tile.viable_neighbors())
+
 
 
 hex_list = []
@@ -101,7 +110,7 @@ for q in range(-5, 6):
                 hex_list.append(cell)
 
 Point = collections.namedtuple("Point", ["x", "y"])
-
+hex_list_grid = [square.grid for square in hex_list]
 
 def hex_to_pixel(h):
     x = (3 / 2 * h.q) * 38
@@ -175,10 +184,14 @@ async def main():
                             if turn_color == "black":
                                 old_val = thing.get_val()
                                 thing.set_val(7)
+                                game1.add_black_piece(thing)
+                                game1.win_check()
 
                             elif turn_color == "white":
                                 old_val = thing.get_val()
                                 thing.set_val(8)
+                                game1.add_white_piece(thing)
+
 
                             if game1.first_move == True:
                                 game1.set_moves(old_val)
