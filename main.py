@@ -84,10 +84,28 @@ class Strand:
             self._turn = "black"
             self.first_move = True
 
-    def win_check(self):
-        for tile in self._black_group:
-            if tile.viable_neighbors():
-                print(tile.viable_neighbors())
+    def win_check(self,thing = 0, black_list = None, total =0, count = 0):
+        if black_list == None:
+            black_list = self._black_group.copy()
+        if thing == 0:
+            thing = black_list[0]
+        if not black_list:
+            if total > count:
+                count = total
+            return count
+
+        for thing in black_list:
+            total += 1
+            black_list.remove(thing)
+            for item in thing.viable_neighbors():
+                if item.get_val() == 7:
+                    return self.win_check(item, black_list, total)
+
+
+
+
+
+
 
 
 
@@ -185,12 +203,12 @@ async def main():
                                 old_val = thing.get_val()
                                 thing.set_val(7)
                                 game1.add_black_piece(thing)
-                                game1.win_check()
+                                print(game1.win_check())
 
                             elif turn_color == "white":
                                 old_val = thing.get_val()
                                 thing.set_val(8)
-                                game1.add_white_piece(thing)
+                                #game1.add_white_piece(thing)
 
 
                             if game1.first_move == True:
