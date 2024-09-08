@@ -2,6 +2,7 @@ import pygame
 import asyncio
 import math
 import collections
+from collections import deque
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 100
@@ -93,29 +94,60 @@ class Strand:
         elif self._moves == 0 and self._turn == "white":
             self._turn = "black"
             self.first_move = True
-    #def findComponents(self):
+    def findLargestGroup(self):
+        first_check = self.black_win_check()
+        visited = first_check[0]
+        black_list = first_check[1]
+        length = len(visited)
 
-    def win_check(self, node = None, visited = None, black_list = None, count=0):
+        for thing in black_list:
+            if thing not in visited:
+                group =len(self.black_win_check(thing)[0])
+                if group > length:
+                    length = group
+        return length
 
+
+
+    def black_win_check(self, start_node=None, black_list=None):
         if black_list is None:
             black_list = self._black_group
-        if node is None:
-            node = black_list[0]
-        if visited is None:
-            visited = set()
+        if start_node is None:
+            if not black_list:
+                return False
+            start_node = black_list[0]
+        #breadth first search
+        visited = set()
+        queue = deque([start_node])
+        visited.add(start_node)
+        while queue:
+            node = queue.popleft()
+            for neighbor in node.viable_neighbors():
+                if neighbor in black_list and neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
 
-        if node in visited:
-            return [thing.grid for thing in visited]
-        visited.add(node)
+        return [visited, black_list]
 
-        val_list = []
-        for neighbor in node.viable_neighbors():
-            if neighbor in black_list:
-                val_list.append(neighbor)
-                print(neighbor.grid)
-                print(black_list, "hello")
-        for possibility in val_list:
-            return self.win_check(possibility, visited, black_list)
+    def white_win_check(self, start_node=None, white_list=None):
+        if white_list is None:
+            white_list = self._white_group
+        if start_node is None:
+            if not white_list:
+                return False
+            start_node = white_list[0]
+        #breadth first search
+        visited = set()
+        queue = deque([start_node])
+        visited.add(start_node)
+        while queue:
+            node = queue.popleft()
+            for neighbor in node.viable_neighbors():
+                if neighbor in white_list and neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+        return len(visited)
 
 
 # #depth first search
@@ -236,7 +268,7 @@ async def main():
                                 old_val = thing.get_val()
                                 thing.set_val(7)
                                 game1.add_black_piece(thing)
-                                print(game1.win_check(), "hi")
+                                print(game1.findLargestGroup())
 
 
 
@@ -244,6 +276,7 @@ async def main():
                                 old_val = thing.get_val()
                                 thing.set_val(8)
                                 game1.add_white_piece(thing)
+                                print(game1.white_win_check())
 
 
                             if game1.first_move == True:
