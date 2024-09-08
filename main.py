@@ -18,6 +18,7 @@ class Hexagon:
         self.r = r
         self.s = s
         self.grid = (q, r, s)
+        self._visited = False
         self.empty = True
         self.value = value
         self.neighbors = [(self.q, self.r + 1, self.s - 1),
@@ -32,6 +33,12 @@ class Hexagon:
 
     def set_val(self, num):
         self.value = num
+
+    def get_visited(self):
+        return self._visited
+
+    def set_visited(self, thing):
+        self._visited = thing
 
     def print_coord(self):
         return (self.q, self.r, self.s)
@@ -73,6 +80,9 @@ class Strand:
     def add_black_piece(self, tile):
         self._black_group.append(tile)
 
+    def get_black_group(self):
+        return self._black_group
+
     def add_white_piece(self, tile):
         self._white_group.append(tile)
     def dec_moves(self):
@@ -83,23 +93,43 @@ class Strand:
         elif self._moves == 0 and self._turn == "white":
             self._turn = "black"
             self.first_move = True
+    #def findComponents(self):
 
-    def win_check(self,thing = 0, black_list = None, total =0, count = 0):
-        if black_list == None:
-            black_list = self._black_group.copy()
-        if thing == 0:
-            thing = black_list[0]
-        if not black_list:
-            if total > count:
-                count = total
-            return count
+    def win_check(self, node = None, visited = None, black_list = None, count=0):
 
-        for thing in black_list:
-            total += 1
-            black_list.remove(thing)
-            for item in thing.viable_neighbors():
-                if item.get_val() == 7:
-                    return self.win_check(item, black_list, total)
+        if black_list is None:
+            black_list = self._black_group
+        if node is None:
+            node = black_list[0]
+        if visited is None:
+            visited = set()
+
+        if node in visited:
+            return [thing.grid for thing in visited]
+        visited.add(node)
+
+        val_list = []
+        for neighbor in node.viable_neighbors():
+            if neighbor in black_list:
+                val_list.append(neighbor)
+                print(neighbor.grid)
+                print(black_list, "hello")
+        for possibility in val_list:
+            return self.win_check(possibility, visited, black_list)
+
+
+# #depth first search
+# number = len(game1.get_black_group())
+# #def find_components():
+
+
+
+
+
+
+
+
+        #
 
 
 
@@ -180,6 +210,9 @@ game1 = Strand(hex_list)
 turn_color = game1.get_turn()
 old_val = 2
 
+
+
+
 async def main():
     while True:
         sc.fill(pygame.Color('thistle1'))
@@ -203,12 +236,14 @@ async def main():
                                 old_val = thing.get_val()
                                 thing.set_val(7)
                                 game1.add_black_piece(thing)
-                                print(game1.win_check())
+                                print(game1.win_check(), "hi")
+
+
 
                             elif turn_color == "white":
                                 old_val = thing.get_val()
                                 thing.set_val(8)
-                                #game1.add_white_piece(thing)
+                                game1.add_white_piece(thing)
 
 
                             if game1.first_move == True:
