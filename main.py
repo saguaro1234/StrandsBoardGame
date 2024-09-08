@@ -106,7 +106,19 @@ class Strand:
                 if group > length:
                     length = group
 
-        return length
+        second_check = self.white_win_check()
+
+        visited2 = second_check[0]
+        white_list = second_check[1]
+        length2 = len(visited2)
+
+        for value in white_list:
+            if value not in visited2:
+                group2 = len(self.white_win_check(value)[0])
+                if group2 > length2:
+                    length2 = group2
+
+        return {"black" : length, "white" : length2}
 
 
 
@@ -148,7 +160,7 @@ class Strand:
                     visited.add(neighbor)
                     queue.append(neighbor)
 
-        return len(visited)
+        return [visited, white_list]
 
 
 # #depth first search
@@ -269,7 +281,8 @@ async def main():
                                 old_val = thing.get_val()
                                 thing.set_val(7)
                                 game1.add_black_piece(thing)
-                                print(game1.findLargestGroup())
+                                if game1.get_new_game() != True:
+                                    print(game1.findLargestGroup())
 
 
 
@@ -278,6 +291,7 @@ async def main():
                                 thing.set_val(8)
                                 game1.add_white_piece(thing)
                                 print(game1.white_win_check())
+                                print(game1.findLargestGroup())
 
 
                             if game1.first_move == True:
