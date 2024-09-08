@@ -105,6 +105,7 @@ class Strand:
                 group =len(self.black_win_check(thing)[0])
                 if group > length:
                     length = group
+
         return length
 
 
