@@ -53,6 +53,7 @@ class Hexagon:
 class Strand:
     def __init__(self, tiles):
         self._tiles = tiles
+        self._type = 2
         self._moves = 1
         self._turn = "black"
         self.first_move = True
@@ -84,6 +85,12 @@ class Strand:
 
     def set_moves(self, num):
         self._moves = num
+
+    def set_type(self, val):
+        self._type = val
+
+    def get_type(self):
+        return self._type
 
     def set_first_move(self, status):
         self.first_move = status
@@ -271,7 +278,8 @@ async def main():
 
                         elif turn_color == "white":
                             old_val = thing.get_val()
-                            pygame.time.delay(900)
+                            game1.set_type(old_val)
+                            pygame.time.delay(300)
                             thing.set_val(8)
                             game1.add_white_piece(thing)
                             game1.sub_valid_move(thing)
