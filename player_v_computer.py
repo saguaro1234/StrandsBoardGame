@@ -4,7 +4,7 @@ import math
 import collections
 from random import choice
 from collections import deque
-from SmartMoveFinder import score_board
+from SmartMoveFinder import score_board, findBestMove
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 100
@@ -69,6 +69,8 @@ class Strand:
         self._valid_moves.remove(tile)
     def add_valid_move(self, tile):
         self._valid_moves.append(tile)
+    def get_valid_moves(self):
+        return self._valid_moves
 
 
     def add_black_piece(self, thing):
@@ -122,6 +124,7 @@ class Strand:
 
         second_check = self.white_win_check()
 
+
         visited2 = second_check[0]
         white_list = second_check[1]
         length2 = len(visited2)
@@ -134,6 +137,7 @@ class Strand:
 
 
         return {"black" : length, "white" : length2}
+
 
 
 
@@ -254,7 +258,7 @@ async def main():
         sc.fill(pygame.Color('thistle1'))
         turn_color = game1.get_turn()
         if turn_color == "white":
-            new_mouse_pos = pixel_to_flat_hex(hex_to_pixel(choice(hex_list)))
+            new_mouse_pos = pixel_to_flat_hex(hex_to_pixel(findBestMove(game1.get_valid_moves(), game1)))
             for thing in hex_list:
                 if thing.print_coord()[0] == new_mouse_pos[0]:
                     if thing.print_coord()[1] == new_mouse_pos[1]:
