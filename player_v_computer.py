@@ -45,10 +45,11 @@ class Hexagon:
     def viable_neighbors(self):
         neighbors = []
         for neighbor in self.neighbors:
-            for thing in hex_list:
-                if Hexagon(neighbor[0], neighbor[1], neighbor[2]).grid == thing.grid:
-                    neighbors.append(thing)
+            if neighbor in hex_list_grid:
+                place = hex_list_grid.index(neighbor)
+                neighbors.append(hex_list[place])
         return neighbors
+
 
 class Strand:
     def __init__(self, tiles):
@@ -211,7 +212,7 @@ for q in range(-5, 6):
                 cell = Hexagon(q, r, s, val, undo_val)
                 hex_list.append(cell)
 Point = collections.namedtuple("Point", ["x", "y"])
-
+hex_list_grid = [square.grid for square in hex_list]
 
 def hex_to_pixel(h):
     x = (3 / 2 * h.q) * 38
