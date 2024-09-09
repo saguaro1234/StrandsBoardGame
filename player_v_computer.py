@@ -3,6 +3,7 @@ import asyncio
 import math
 import collections
 from random import choice
+from collections import deque
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 100
@@ -14,13 +15,14 @@ clock = pygame.time.Clock()
 
 
 class Hexagon:
-    def __init__(self, q, r, s, value=0):
+    def __init__(self, q, r, s, value=0, undo_val=0):
         self.q = q
         self.r = r
         self.s = s
         self.grid = (q, r, s)
         self.empty = True
         self.value = value
+        self.undo_val = undo_val
         self.neighbors = [(self.q, self.r + 1, self.s - 1),
                           (self.q, self.r - 1, self.s + 1),
                           (self.q + 1, self.r - 1, self.s),
@@ -30,6 +32,8 @@ class Hexagon:
 
     def get_val(self):
         return self.value
+    def get_undo_val(self):
+        return self.undo_val
 
     def set_val(self, num):
         self.value = num
@@ -54,9 +58,20 @@ class Strand:
         self._new_game = True
         self._black_group = []
         self._white_group = []
+        self._valid_moves = tiles.copy()
 
     def get_new_game(self):
         return self._new_game
+    def add_white_piece(self, thing):
+        self._white_group.append(thing)
+    def sub_valid_move(self, tile):
+        self._valid_moves.remove(tile)
+    def add_valid_move(self, tile):
+        self._valid_moves.append(tile)
+
+
+    def add_black_piece(self, thing):
+        self._black_group.append(thing)
 
     def set_new_game(self, state):
         self._new_game = state
@@ -69,6 +84,15 @@ class Strand:
 
     def set_first_move(self, status):
         self.first_move = status
+
+    def undo_white_move(self):
+        num = self._white_group[-1].get_undo_val()
+        step = -1
+        for thing in range(0, num):
+            self._white_group[step].set_val(num)
+            self.add_valid_move(self._white_group[-1])
+            self._white_group = self._white_group[:-1]
+        return self._white_group, num
     def dec_moves(self):
         self._moves -= 1
         if self._moves == 0 and self._turn == "black":
@@ -77,22 +101,102 @@ class Strand:
         elif self._moves == 0 and self._turn == "white":
             self._turn = "black"
             self.first_move = True
+
+
+    def findLargestGroup(self):
+        if self.get_new_game() == True:
+            return {"black": 1, "white": 0}
+
+        first_check = self.black_win_check()
+        visited = first_check[0]
+        black_list = first_check[1]
+        length = len(visited)
+
+        for thing in black_list:
+            if thing not in visited:
+                group =len(self.black_win_check(thing)[0])
+                if group > length:
+                    length = group
+
+
+        second_check = self.white_win_check()
+
+        visited2 = second_check[0]
+        white_list = second_check[1]
+        length2 = len(visited2)
+
+        for value in white_list:
+            if value not in visited2:
+                group2 = len(self.white_win_check(value)[0])
+                if group2 > length2:
+                    length2 = group2
+
+
+        return {"black" : length, "white" : length2}
+
+
+
+    def black_win_check(self, start_node=None, black_list=None):
+        if black_list is None:
+            black_list = self._black_group
+        if start_node is None:
+            if not black_list:
+                return False
+            start_node = black_list[0]
+        #breadth first search
+        visited = set()
+        queue = deque([start_node])
+        visited.add(start_node)
+        while queue:
+            node = queue.popleft()
+            for neighbor in node.viable_neighbors():
+                if neighbor in black_list and neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+        return [visited, black_list]
+
+    def white_win_check(self, start_node=None, white_list=None):
+        if white_list is None:
+            white_list = self._white_group
+        if start_node is None:
+            if not white_list:
+                return False
+            start_node = white_list[0]
+        #breadth first search
+        visited = set()
+        queue = deque([start_node])
+        visited.add(start_node)
+        while queue:
+            node = queue.popleft()
+            for neighbor in node.viable_neighbors():
+                if neighbor in white_list and neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+        return [visited, white_list]
+
 hex_list = []
 for q in range(-5, 6):
     for r in range(-5, 6):
         for s in range(-5, 6):
             if (q + r + s) == 0:
+                undo_val = 2
                 val = 2
                 if abs(q) == 4 or abs(r) == 4 or abs(s) == 4:
+                    undo_val = 3
                     val = 3
                 if 5 in (abs(q), abs(r), abs(s)) and 0 in (abs(q), abs(r), abs(s)):
+                    undo_val = 6
                     val = 6
                 if 5 in (abs(q), abs(r), abs(s)) and 0 not in (abs(q), abs(r), abs(s)):
+                    undo_val = 4
                     val = 4
                 if (q, r, s) == (0, 0, 0) or (q, r, s) == (0, -2, +2) or (q, r, s) == (2, 0, -2) or (q, r, s) == (
                 -2, 2, 0):
+                    undo_val = 1
                     val = 1
-                cell = Hexagon(q, r, s, val)
+                cell = Hexagon(q, r, s, val, undo_val)
                 hex_list.append(cell)
 Point = collections.namedtuple("Point", ["x", "y"])
 
@@ -155,26 +259,29 @@ async def main():
                     if thing.print_coord()[1] == new_mouse_pos[1]:
                         if game1.first_move != True and thing.get_val() != old_val:
                             continue
-                        if game1.get_new_game() == True and thing.get_val() != 2:
-                            continue
+
                         if thing.get_val() == 7 or thing.get_val() == 8:
                             continue
-                        if turn_color == "black":
-                            old_val = thing.get_val()
-                            thing.set_val(7)
+
 
                         elif turn_color == "white":
                             old_val = thing.get_val()
                             pygame.time.delay(900)
                             thing.set_val(8)
+                            game1.add_white_piece(thing)
+                            game1.sub_valid_move(thing)
+                            print(len(game1._valid_moves))
+
+
+
 
                         if game1.first_move == True:
                             game1.set_moves(old_val)
                             game1.set_first_move(False)
-                        if game1.get_new_game() == True:
-                            game1.dec_moves()
-                            game1.set_new_game(False)
+
                         game1.dec_moves()
+                        #print(game1.findLargestGroup())
+
 
 
         for event in pygame.event.get():
@@ -198,10 +305,16 @@ async def main():
                             if turn_color == "black":
                                 old_val = thing.get_val()
                                 thing.set_val(7)
+                                game1.add_black_piece(thing)
+                                game1.sub_valid_move(thing)
+                                if game1.get_new_game() !=True:
+                                    game1.undo_white_move()
 
-                            elif turn_color == "white":
-                                old_val = thing.get_val()
-                                thing.set_val(8)
+                                    print(len(game1._valid_moves))
+
+                                #print(game1.findLargestGroup())
+
+
 
                             if game1.first_move == True:
                                 game1.set_moves(old_val)
@@ -210,6 +323,7 @@ async def main():
                                 game1.dec_moves()
                                 game1.set_new_game(False)
                             game1.dec_moves()
+
         for thing in hex_list:
             draw_hex(thing, 35)
 
