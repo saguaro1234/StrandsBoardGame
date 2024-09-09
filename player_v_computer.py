@@ -4,6 +4,7 @@ import math
 import collections
 from random import choice
 from collections import deque
+from SmartMoveFinder import score_board
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 100
@@ -307,10 +308,9 @@ async def main():
                                 thing.set_val(7)
                                 game1.add_black_piece(thing)
                                 game1.sub_valid_move(thing)
-                                if game1.get_new_game() !=True:
-                                    game1.undo_white_move()
 
-                                    print(len(game1._valid_moves))
+
+                                print(score_board(game1))
 
                                 #print(game1.findLargestGroup())
 
