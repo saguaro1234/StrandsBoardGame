@@ -120,6 +120,7 @@ class Strand:
     def make_move(self, space, color):
         """takes a tile and color and sets that tile to that color, and deletes that from valid moves and
         adds it to the correct black or white list"""
+        self.set_type(space.get_val())
         space.set_val(color)
         self.sub_valid_move(space)
         if color == 8:
@@ -320,10 +321,8 @@ while True:
                     continue
                 if thing.get_val() == 7 or thing.get_val() == 8:
                     continue
-                elif game1.get_turn() == "white":
-                    game1.set_type(thing.get_val())
-                    pygame.time.delay(300)
-                    game1.make_move(thing, 8)
+                pygame.time.delay(300)
+                game1.make_move(thing, 8)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -341,10 +340,8 @@ while True:
                         continue
                     if thing.get_val() == 7 or thing.get_val() == 8:
                         continue
-                    if game1.get_turn() == "black":
-                        game1.set_type(thing.get_val())
-                        print(game1.find_largest_group())
-                        game1.make_move(thing, 7)
+                    print(game1.find_largest_group())
+                    game1.make_move(thing, 7)
 
     for thing in hex_list:
         draw_hex(thing, 35)
