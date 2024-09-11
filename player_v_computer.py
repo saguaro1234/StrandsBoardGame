@@ -239,22 +239,17 @@ for q in range(-5, 6):
     for r in range(-5, 6):
         for s in range(-5, 6):
             if (q + r + s) == 0:
-                undo_val = 2
                 val = 2
                 if abs(q) == 4 or abs(r) == 4 or abs(s) == 4:
-                    undo_val = 3
                     val = 3
                 if 5 in (abs(q), abs(r), abs(s)) and 0 in (abs(q), abs(r), abs(s)):
-                    undo_val = 6
                     val = 6
                 if 5 in (abs(q), abs(r), abs(s)) and 0 not in (abs(q), abs(r), abs(s)):
-                    undo_val = 4
                     val = 4
                 if (q, r, s) == (0, 0, 0) or (q, r, s) == (0, -2, +2) or (q, r, s) == (2, 0, -2) or (q, r, s) == (
                 -2, 2, 0):
-                    undo_val = 1
                     val = 1
-                cell = Hexagon(q, r, s, val, undo_val)
+                cell = Hexagon(q, r, s, val, val)
                 hex_list.append(cell)
 Point = collections.namedtuple("Point", ["x", "y"])
 hex_list_grid = [square.grid for square in hex_list]
@@ -307,53 +302,47 @@ def get_mouse():
 
 #Creates a game and sets first turn as black
 game1 = Strand(hex_list)
-turn_color = game1.get_turn()
-old_val = 2
+
+
 
 #start game loop
 
 while True:
     sc.fill(pygame.Color('thistle1'))
-    turn_color = game1.get_turn()
-    if turn_color == "white":
+    if game1.get_turn() == "white":
         new_mouse_pos = pixel_to_flat_hex(hex_to_pixel(findBestMove(game1.get_valid_moves(), game1)))
         for thing in hex_list:
-            if thing.print_coord()[0] == new_mouse_pos[0]:
-                if thing.print_coord()[1] == new_mouse_pos[1]:
-                    if game1.first_move != True and thing.get_val() != old_val:
-                        continue
-                    if thing.get_val() == 7 or thing.get_val() == 8:
-                        continue
-                    elif turn_color == "white":
-                        old_val = thing.get_val()
-                        game1.set_type(old_val)
-                        pygame.time.delay(300)
-                        game1.make_move(thing, 8)
+            if (thing.print_coord()[0], thing.print_coord()[1]) == (new_mouse_pos[0], new_mouse_pos[1]):
+                if game1.first_move != True and thing.get_val() != game1.get_type():
+                    continue
+                if thing.get_val() == 7 or thing.get_val() == 8:
+                    continue
+                elif game1.get_turn() == "white":
+                    game1.set_type(thing.get_val())
+                    pygame.time.delay(300)
+                    game1.make_move(thing, 8)
 
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            turn_color = game1.get_turn()
-            if turn_color == "white":
+            if game1.get_turn() == "white":
                 continue
             else:
                 new_mouse_pos = get_mouse()
             for thing in hex_list:
-                if thing.print_coord()[0] == new_mouse_pos[0]:
-                    if thing.print_coord()[1] == new_mouse_pos[1]:
-                        if game1.first_move != True and thing.get_val() != old_val:
-                            continue
-                        if game1.get_new_game() == True and thing.get_val() != 2:
-                            continue
-                        if thing.get_val() == 7 or thing.get_val() == 8:
-                            continue
-                        if turn_color == "black":
-                            old_val = thing.get_val()
-                            print(game1.findLargestGroup())
-                            game1.make_move(thing,7)
-
+                if (thing.print_coord()[0], thing.print_coord()[1]) == (new_mouse_pos[0], new_mouse_pos[1]):
+                    if game1.first_move != True and thing.get_val() != game1.get_type():
+                        continue
+                    if game1.get_new_game() == True and thing.get_val() != 2:
+                        continue
+                    if thing.get_val() == 7 or thing.get_val() == 8:
+                        continue
+                    if game1.get_turn() == "black":
+                        game1.set_type(thing.get_val())
+                        print(game1.findLargestGroup())
+                        game1.make_move(thing,7)
 
     for thing in hex_list:
         draw_hex(thing, 35)
