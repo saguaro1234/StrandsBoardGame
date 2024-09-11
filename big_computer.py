@@ -330,15 +330,27 @@ def get_mouse():
 # Creates a game and sets first turn as black
 game1 = Strand(hex_list)
 
-
 while True:
     sc.fill(pygame.Color('thistle1'))
+    if game1.get_turn() == "white":
+        new_mouse_pos = pixel_to_flat_hex(hex_to_pixel(findBestMove(game1.get_valid_moves(), game1)))
+        for thing in hex_list:
+            if (thing.print_coord()[0], thing.print_coord()[1]) == (new_mouse_pos[0], new_mouse_pos[1]):
+                if not game1.first_move and thing.get_val() != game1.get_type():
+                    continue
+                if thing.get_val() == 7 or thing.get_val() == 8:
+                    continue
+                pygame.time.delay(300)
+                game1.make_move(thing, 8)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            new_mouse_pos = get_mouse()
+            if game1.get_turn() == "white":
+                continue
+            else:
+                new_mouse_pos = get_mouse()
             for thing in hex_list:
                 if (thing.print_coord()[0], thing.print_coord()[1]) == (new_mouse_pos[0], new_mouse_pos[1]):
                     if not game1.first_move and thing.get_val() != game1.get_type():
@@ -347,13 +359,9 @@ while True:
                         continue
                     if thing.get_val() == 7 or thing.get_val() == 8:
                         continue
-                    if game1.get_turn() == "black":
-                        game1.make_move(thing, 7)
-                        if game1.get_white_group():
-                            print(game1.find_largest_group())
-                    elif game1.get_turn() == "white":
-                        game1.make_move(thing, 8)
-                        print(game1.find_largest_group())
+                    print(game1.find_largest_group())
+                    game1.make_move(thing, 7)
+
 
     for thing in hex_list:
         draw_hex(thing, 35)
