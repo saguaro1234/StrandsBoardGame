@@ -163,24 +163,6 @@ class Strand:
         return [visited, white_list]
 
 
-# #depth first search
-# number = len(game1.get_black_group())
-# #def find_components():
-
-
-
-
-
-
-
-
-        #
-
-
-
-
-
-
 
 
 
@@ -290,7 +272,7 @@ async def main():
                                 old_val = thing.get_val()
                                 thing.set_val(8)
                                 game1.add_white_piece(thing)
-                                print(game1.white_win_check())
+                                #print(game1.white_win_check())
                                 print(game1.findLargestGroup())
 
 
