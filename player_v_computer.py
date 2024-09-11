@@ -2,9 +2,8 @@ import pygame
 import asyncio
 import math
 import collections
-from random import choice
 from collections import deque
-from SmartMoveFinder import score_board, findBestMove
+from SmartMoveFinder import findBestMove
 
 RES = WIDTH, HEIGHT = 1200, 900
 TILE = 100
@@ -85,7 +84,6 @@ class Strand:
     def get_valid_moves(self):
         """gets valid moves"""
         return self._valid_moves
-
 
     def add_black_piece(self, thing):
         """adds black piece to list"""
@@ -209,7 +207,6 @@ class Strand:
                 if neighbor in black_list and neighbor not in visited:
                     visited.add(neighbor)
                     queue.append(neighbor)
-
         return [visited, black_list]
 
     def white_win_check(self, start_node=None, white_list=None):
@@ -220,7 +217,6 @@ class Strand:
             if not white_list:
                 return False
             start_node = white_list[0]
-
         visited = set()
         queue = deque([start_node])
         visited.add(start_node)
@@ -230,7 +226,6 @@ class Strand:
                 if neighbor in white_list and neighbor not in visited:
                     visited.add(neighbor)
                     queue.append(neighbor)
-
         return [visited, white_list]
 
 #create grid of hexagons to be passed into new strand game
