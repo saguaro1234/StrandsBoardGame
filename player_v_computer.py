@@ -1,5 +1,4 @@
 import pygame
-import asyncio
 import math
 import collections
 from collections import deque
@@ -15,11 +14,11 @@ clock = pygame.time.Clock()
 
 
 class Hexagon:
-    def __init__(self, q, r, s, value=0, undo_val=0):
+    def __init__(self, q_coord, r_coord, s_coord, value=0, undo_val=0):
         """initializes class"""
-        self.q = q
-        self.r = r
-        self.s = s
+        self.q = q_coord
+        self.r = r_coord
+        self.s = s_coord
         self.grid = (q, r, s)
         self.empty = True
         self.value = value
@@ -34,6 +33,7 @@ class Hexagon:
     def get_val(self):
         """returns value of tile"""
         return self.value
+
     def get_undo_val(self):
         """returns undo value"""
         return self.undo_val
@@ -44,7 +44,7 @@ class Hexagon:
 
     def print_coord(self):
         """returns (q,r,s) coordinates of tile"""
-        return (self.q, self.r, self.s)
+        return self.q, self.r, self.s
 
     def viable_neighbors(self):
         """returns neighbors of tile that exist in the grid"""
@@ -72,22 +72,26 @@ class Strand:
     def get_new_game(self):
         """returns if game is new"""
         return self._new_game
-    def add_white_piece(self, thing):
+
+    def add_white_piece(self, pos):
         """adds a piece to white moves"""
-        self._white_group.append(thing)
+        self._white_group.append(pos)
+
     def sub_valid_move(self, tile):
         """deletes a value from valid moves list"""
         self._valid_moves.remove(tile)
+
     def add_valid_move(self, tile):
         """adds a value to valid move list"""
         self._valid_moves.append(tile)
+
     def get_valid_moves(self):
         """gets valid moves"""
         return self._valid_moves
 
-    def add_black_piece(self, thing):
+    def add_black_piece(self, pos):
         """adds black piece to list"""
-        self._black_group.append(thing)
+        self._black_group.append(pos)
 
     def set_new_game(self, state):
         """sets new game"""
@@ -101,9 +105,9 @@ class Strand:
         """sets number of moves"""
         self._moves = num
 
-    def set_type(self, val):
+    def set_type(self, pos):
         """sets type"""
-        self._type = val
+        self._type = pos
 
     def get_type(self):
         """gets type"""
@@ -122,10 +126,10 @@ class Strand:
             self._white_group.append(space)
         elif color == 7:
             self._black_group.append(space)
-        if game1.first_move == True:
+        if game1.first_move is True:
             game1.set_moves(space.get_undo_val())
             game1.set_first_move(False)
-        if game1.get_new_game() == True:
+        if game1.get_new_game() is True:
             game1.dec_moves()
             game1.set_new_game(False)
         game1.dec_moves()
@@ -135,7 +139,7 @@ class Strand:
         and adds them back into valid moves, and deletes them from white list data member"""
         num = self._white_group[-1].get_undo_val()
         step = -1
-        for thing in range(0, num):
+        for pos in range(0, num):
             self._white_group[step].set_val(num)
             self.add_valid_move(self._white_group[-1])
             self._white_group = self._white_group[:-1]
@@ -146,7 +150,7 @@ class Strand:
         and adds them back into valid moves, and deletes them from black list data member"""
         num = self._black_group[-1].get_undo_val()
         step = -1
-        for thing in range(0, num):
+        for pos in range(0, num):
             self._black_group[step].set_val(num)
             self.add_valid_move(self._black_group[-1])
             self._black_group = self._black_group[:-1]
@@ -163,20 +167,19 @@ class Strand:
             self._turn = "black"
             self.first_move = True
 
-
-    def findLargestGroup(self):
+    def find_largest_group(self):
         """passes the first value from black list and white list into their respective breadth first searches, if there
         are any remaining unvisited stones, reruns using those stones as starting place,
         returns the largest group of each color"""
-        if self.get_new_game() == True:
+        if self.get_new_game() is True:
             return {"black": 1, "white": 0}
         first_check = self.black_win_check()
         visited = first_check[0]
         black_list = first_check[1]
         length = len(visited)
-        for thing in black_list:
-            if thing not in visited:
-                group =len(self.black_win_check(thing)[0])
+        for pos in black_list:
+            if pos not in visited:
+                group = len(self.black_win_check(pos)[0])
                 if group > length:
                     length = group
         second_check = self.white_win_check()
@@ -228,7 +231,8 @@ class Strand:
                     queue.append(neighbor)
         return [visited, white_list]
 
-#create grid of hexagons to be passed into new strand game
+
+# create grid of hexagons to be passed into new strand game
 hex_list = []
 for q in range(-5, 6):
     for r in range(-5, 6):
@@ -242,14 +246,15 @@ for q in range(-5, 6):
                 if 5 in (abs(q), abs(r), abs(s)) and 0 not in (abs(q), abs(r), abs(s)):
                     val = 4
                 if (q, r, s) == (0, 0, 0) or (q, r, s) == (0, -2, +2) or (q, r, s) == (2, 0, -2) or (q, r, s) == (
-                -2, 2, 0):
+                        -2, 2, 0):
                     val = 1
                 cell = Hexagon(q, r, s, val, val)
                 hex_list.append(cell)
 Point = collections.namedtuple("Point", ["x", "y"])
 hex_list_grid = [square.grid for square in hex_list]
 
-#Helper functions for printing hexagon grid
+
+# Helper functions for printing hexagon grid
 def hex_to_pixel(h):
     """converts hex grid to pixel screen location"""
     x = (3 / 2 * h.q) * 38
@@ -259,13 +264,15 @@ def hex_to_pixel(h):
 
 def pixel_to_flat_hex(point):
     """converts pixel screen location to hex grid"""
-    q = (2 / 3 * (point[0] - 135)) / 38
-    r = (-1 / 3 * (point[0] - 135) + math.sqrt(3) / 3 * (point[1] + 145)) / 38
-    return (round(q), round(r))
+    q_coord = (2 / 3 * (point[0] - 135)) / 38
+    r_coord = (-1 / 3 * (point[0] - 135) + math.sqrt(3) / 3 * (point[1] + 145)) / 38
+    return round(q_coord), round(r_coord)
 
 
 hi = HEIGHT / 2
 wi = WIDTH / 2
+
+
 def draw_hex(h, size):
     """calculates coordinates and draws the polygons with appropriate color"""
     color_map = {
@@ -288,19 +295,20 @@ def draw_hex(h, size):
               (coord.x + size * math.sin(5 * 3.14 / 6) + hi, coord.y + size * math.cos(5 * 3.14 / 6) + wi)]
     pygame.draw.polygon(sc, pygame.Color(color), points)
 
+
 def get_mouse():
     """takes a mouse click location and converts to hex grid location"""
     mouse_pos = pygame.mouse.get_pos()
     mouse_list = [mouse_pos[0] - hi, mouse_pos[1] - wi]
-    new_mouse_pos = pixel_to_flat_hex(mouse_list)
-    return new_mouse_pos
+    mouse = pixel_to_flat_hex(mouse_list)
+    return mouse
 
-#Creates a game and sets first turn as black
+
+# Creates a game and sets first turn as black
 game1 = Strand(hex_list)
 
 
-
-#start game loop
+# start game loop
 
 while True:
     sc.fill(pygame.Color('thistle1'))
@@ -308,7 +316,7 @@ while True:
         new_mouse_pos = pixel_to_flat_hex(hex_to_pixel(findBestMove(game1.get_valid_moves(), game1)))
         for thing in hex_list:
             if (thing.print_coord()[0], thing.print_coord()[1]) == (new_mouse_pos[0], new_mouse_pos[1]):
-                if game1.first_move != True and thing.get_val() != game1.get_type():
+                if not game1.first_move and thing.get_val() != game1.get_type():
                     continue
                 if thing.get_val() == 7 or thing.get_val() == 8:
                     continue
@@ -316,7 +324,6 @@ while True:
                     game1.set_type(thing.get_val())
                     pygame.time.delay(300)
                     game1.make_move(thing, 8)
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -328,20 +335,19 @@ while True:
                 new_mouse_pos = get_mouse()
             for thing in hex_list:
                 if (thing.print_coord()[0], thing.print_coord()[1]) == (new_mouse_pos[0], new_mouse_pos[1]):
-                    if game1.first_move != True and thing.get_val() != game1.get_type():
+                    if not game1.first_move and thing.get_val() != game1.get_type():
                         continue
-                    if game1.get_new_game() == True and thing.get_val() != 2:
+                    if game1.get_new_game() and thing.get_val() != 2:
                         continue
                     if thing.get_val() == 7 or thing.get_val() == 8:
                         continue
                     if game1.get_turn() == "black":
                         game1.set_type(thing.get_val())
-                        print(game1.findLargestGroup())
-                        game1.make_move(thing,7)
+                        print(game1.find_largest_group())
+                        game1.make_move(thing, 7)
 
     for thing in hex_list:
         draw_hex(thing, 35)
 
     pygame.display.flip()
     clock.tick(1000)
-

@@ -24,7 +24,7 @@ def findBestMove(validMoves, game, value = 0):
 
 def score_board(game):
     try:
-        gs = game.findLargestGroup()
+        gs = game.find_largest_group()
     except(TypeError):
         return 0
     score = gs["white"] - gs["black"]
