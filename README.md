@@ -24,5 +24,13 @@ red: 1
 Once a player has placed a stone they may only play on that same color for the rest of their turn, and they
 must play as many stones as that color represents. Once they have placed all their stones, it is the next 
 players turn. On the first turn of the game, the black player gets to play one stone on any of the blue spaces.
-![Untitled design (1)](https://github.com/user-attachments/assets/b4f7ebe2-c927-401c-970d-7dcea45a4e01)
+![Untitled design (3)](https://github.com/user-attachments/assets/ae872c4b-d018-4bac-8875-0c02f6b8abe4)
+
+
+A group is considered connected if all stones are touching with at least one hexagonal side. The game keeps track of the  
+largest group of each color by using a breadth first search on the lists of black and white pieces, checking potential neighbors  
+of the same color within the grid.
+
+Thanks for checking out the project and thanks to Nick Bentley for creating this clever game!
+
 
