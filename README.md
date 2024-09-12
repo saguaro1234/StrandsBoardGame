@@ -33,7 +33,7 @@ of the same color within the grid.
 
 Thanks for checking out the project and thanks to Nick Bentley for creating this clever game!  
 
-This game does require pygame to be installed. I have several versions of the game one here on a small and big board, with two player and  
+This game does require pygame to be installed. I have several versions of the game on here on a small and big board, with two player and  
 player versus a rudimentary smart move finder algorithm.
 
 
